@@ -34,7 +34,7 @@ function App() {
     formData.append("file", image);
 
     try {
-      const response = await fetch("https://devtunnels.ms", {
+      const response = await fetch("https://8w7xk629-8080.inc1.devtunnels.ms/analyze", {
         method: "POST",
         body: formData,
       });
