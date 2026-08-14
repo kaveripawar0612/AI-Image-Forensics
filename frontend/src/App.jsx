@@ -7,6 +7,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [showHeatmap, setShowHeatmap] = useState(true);
 
   const fileInputRef = useRef(null);
 
@@ -33,7 +34,6 @@ function App() {
     formData.append("file", image);
 
     try {
-      // Connects directly to your active VS Code public tunnel connection on port 8080
       const response = await fetch("https://devtunnels.ms", {
         method: "POST",
         body: formData,
@@ -45,6 +45,7 @@ function App() {
 
       const data = await response.json();
       setResult(data);
+      setShowHeatmap(true);
     } catch (err) {
       console.error(err);
       setError("Unable to connect to FastAPI backend. Ensure uvicorn is running on port 8080.");
@@ -54,89 +55,101 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      <nav className="nav-bar">
-        <span className="nav-logo">🛡️ AI Image Forensics</span>
-        <div className="nav-links">
-          <a href="#dashboard" className="active">Dashboard</a>
-          <a href="#about">About</a>
-        </div>
+    <div className="frontend">
+      <nav style={{ display: "flex", gap: "15px", justifyContent: "center", padding: "10px" }}>
+        <a href="#dashboard" style={{ color: "#fff", textDecoration: "none", fontWeight: "bold" }}>Dashboard</a>
+        <a href="#about" style={{ color: "#888", textDecoration: "none" }}>About</a>
       </nav>
 
-      <header className="app-header">
-        <p className="subtitle-tag">AI-POWERED IMAGE ANALYSIS</p>
-        <h1>Detect Image Forgery <span className="gradient-text">with AI</span></h1>
-        <p className="description-text">
+      <div style={{ textAlign: "center", padding: "40px 20px" }}>
+        <p style={{ color: "#00d2ff", letterSpacing: "2px", fontSize: "14px", fontWeight: "bold", margin: "0" }}>AI-POWERED IMAGE ANALYSIS</p>
+        <h1 style={{ fontSize: "42px", margin: "10px 0", color: "#fff" }}>Detect Image Forgery <span style={{ color: "#00d2ff" }}>with AI</span></h1>
+        <p style={{ color: "#aaa", maxWidth: "600px", margin: "0 auto 30px" }}>
           Analyze images for deepfakes, copy-move forgery, splicing, and digital alterations.
         </p>
-      </header>
 
-      <main className="main-content">
-        <section className="workstation-card">
-          <h2>Forensic Inspection Workstation</h2>
-          <p className="view-mode-label">Original Image</p>
+        {/* Main Workstation Box Container */}
+        <div style={{ backgroundColor: "#111827", border: "1px solid #1f2937", borderRadius: "12px", padding: "30px", maxWidth: "800px", margin: "0 auto", boxSerif: "0 4px 6px rgba(0,0,0,0.3)" }}>
+          <h2 style={{ fontSize: "20px", color: "#fff", marginBottom: "20px" }}>Forensic Inspection Workstation</h2>
           
-          <div className="image-preview-box">
-            {preview ? (
-              <img src={preview} alt="Forensic Inspection View" className="preview-image" />
-            ) : (
-              <div className="upload-placeholder" onClick={() => fileInputRef.current.click()}>
-                <p>Drag & Drop or Click to Upload Image</p>
+          {/* Side-by-Side Flex Grid */}
+          <div style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap", marginBottom: "20px" }}>
+            <div>
+              <p style={{ color: "#aaa", fontSize: "14px", marginBottom: "10px" }}>Original Image</p>
+              <div style={{ width: "320px", height: "240px", backgroundColor: "#0b0f19", border: "2px dashed #1f2937", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", cursor: "pointer" }} onClick={() => fileInputRef.current.click()}>
+                {preview ? (
+                  <img src={preview} alt="Original Workspace" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                ) : (
+                  <span style={{ color: "#555", fontSize: "14px" }}>Drag & Drop or Click to Upload Image</span>
+                )}
+              </div>
+            </div>
+
+            {result?.heatmap && showHeatmap && (
+              <div>
+                <p style={{ color: "#aaa", fontSize: "14px", marginBottom: "10px" }}>Suspicious Region Heatmap (ELA)</p>
+                <div style={{ width: "320px", height: "240px", backgroundColor: "#0b0f19", border: "1px solid #1f2937", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                  <img src={result.heatmap} alt="Forensic Heatmap" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                </div>
               </div>
             )}
           </div>
 
-          <p className="file-info-text">{image ? image.name : "No file chosen"}</p>
+          <p style={{ color: "#888", fontSize: "13px", marginBottom: "20px" }}>{image ? image.name : "No file chosen"}</p>
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImageUpload}
-            style={{ display: "none" }}
-            accept="image/*"
-          />
+          <input type="file" ref={fileInputRef} onChange={handleImageUpload} style={{ display: "none" }} accept="image/*" />
 
-          <div className="action-buttons">
-            <button className="btn btn-primary" onClick={analyzeImage} disabled={loading}>
+          <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
+            <button onClick={analyzeImage} disabled={loading} style={{ backgroundColor: "#00d2ff", color: "#000", border: "none", padding: "10px 24px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>
               {loading ? "Analyzing Matrix..." : "Analyze Image"}
             </button>
-            <button className="btn btn-secondary" onClick={() => fileInputRef.current.click()}>
+            <button onClick={() => fileInputRef.current.click()} style={{ backgroundColor: "transparent", color: "#fff", border: "1px solid #374151", padding: "10px 24px", borderRadius: "6px", cursor: "pointer" }}>
               Choose Another Image
             </button>
           </div>
 
-          {error && <div className="error-message-text">{error}</div>}
-        </section>
+          {error && <p style={{ color: "#ef4444", marginTop: "15px", fontSize: "14px" }}>{error}</p>}
+        </div>
 
+        {/* Results Panel */}
         {result && (
-          <section className="results-card">
-            <div className="results-header">
-              <h3>Analysis Results</h3>
-              <span className={`status-badge ${result.prediction.toLowerCase()}`}>
+          <div style={{ backgroundColor: "#111827", border: "1px solid #1f2937", borderRadius: "12px", padding: "25px", maxWidth: "800px", margin: "20px auto 0", textAlign: "left" }}>
+            <div style={{ display: "flex", justifyContent: "between", alignItems: "center", borderBottom: "1px solid #1f2937", paddingBottom: "15px", marginBottom: "15px" }}>
+              <h3 style={{ color: "#fff", margin: "0", fontSize: "18px" }}>Analysis Results</h3>
+              <span style={{ backgroundColor: result.prediction === "AUTHENTIC" ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)", color: result.prediction === "AUTHENTIC" ? "#10b981" : "#ef4444", padding: "4px 12px", borderRadius: "20px", fontWeight: "bold", fontSize: "14px" }}>
                 {result.prediction}
               </span>
             </div>
 
-            <div className="metrics-grid">
-              <div className="metric-item">
-                <strong>Detected Type:</strong> <span>{result.forgery_type}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px" }}>
+              <div>
+                <p style={{ color: "#888", margin: "0 0 5px", fontSize: "13px" }}>Detected Type</p>
+                <p style={{ color: "#fff", margin: "0", fontWeight: "bold" }}>{result.forgery_type}</p>
               </div>
-              <div className="metric-item">
-                <strong>Confidence Score:</strong> <span>{result.confidence}%</span>
+              <div>
+                <p style={{ color: "#888", margin: "0 0 5px", fontSize: "13px" }}>Confidence Score</p>
+                <p style={{ color: "#fff", margin: "0", fontWeight: "bold" }}>{result.confidence}%</p>
               </div>
-              <div className="metric-item">
-                <strong>Risk Level:</strong>{" "}
-                <span className={`risk-tag risk-${result.risk_level.toLowerCase()}`}>
-                  {result.risk_level}
-                </span>
+              <div>
+                <p style={{ color: "#888", margin: "0 0 5px", fontSize: "13px" }}>Risk Level</p>
+                <p style={{ color: result.risk_level === "LOW" ? "#10b981" : "#f59e0b", margin: "0", fontWeight: "bold" }}>{result.risk_level}</p>
               </div>
-              <div className="metric-item">
-                <strong>Resolution:</strong> <span>{result.width} × {result.height} px</span>
+              <div>
+                <p style={{ color: "#888", margin: "0 0 5px", fontSize: "13px" }}>Resolution</p>
+                <p style={{ color: "#fff", margin: "0", fontWeight: "bold" }}>{result.width} × {result.height} px</p>
               </div>
             </div>
-          </section>
+
+            {result.heatmap && (
+              <div style={{ marginTop: "20px", textAlign: "center" }}>
+                <button onClick={() => setShowHeatmap(!showHeatmap)} style={{ backgroundColor: "#2563eb", color: "#fff", border: "none", padding: "8px 20px", borderRadius: "6px", cursor: "pointer", fontSize: "14px" }}>
+                  {showHeatmap ? "Hide Heatmap Evidence" : "🔍 View Forensic Heatmap"}
+                </button>
+              </div>
+            )}
+          </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
