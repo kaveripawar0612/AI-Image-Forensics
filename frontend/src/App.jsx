@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import "./App.css";
 
 function App() {
@@ -6,12 +6,10 @@ function App() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
 
-  // File Input References
   const fileInputRef = useRef(null);
-  const changeInputRef = useRef(null);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -19,7 +17,7 @@ function App() {
       setImage(file);
       setPreview(URL.createObjectURL(file));
       setResult(null);
-      setError("");
+      setError(null);
       setShowHeatmap(false);
     }
   };
@@ -31,142 +29,123 @@ function App() {
     }
 
     setLoading(true);
-    setError("");
-    setResult(null);
+    setError(null);
 
     const formData = new FormData();
     formData.append("file", image);
 
     try {
-      const response = await fetch("https://8w7xk629-8080.inc1.devtunnels.ms/analyze", {
+      // Points to your active VS Code public tunnel connection on port 8080
+      const response = await fetch("https://devtunnels.ms", {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
+        throw new Error(`Server status error: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("Forensic Model Analysis:", data);
       setResult(data);
     } catch (err) {
-      console.error("Analysis error:", err);
-      setError("Unable to connect to FastAPI backend. Ensure uvicorn is running on port 8000.");
+      console.error(err);
+      setError("Unable to connect to FastAPI backend. Ensure uvicorn is running on port 8080.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="app">
-      <nav className="navbar">
-        <div className="logo">🛡️ AI Image Forensics</div>
-        <div className="nav-links">
-          <a href="#dashboard">Dashboard</a>
-          <a href="#about">About</a>
-        </div>
-      </nav>
+    <div className="app-container">
+      <header className="app-header">
+        <h1>AI Image Forensics</h1>
+        <p>Detect Deepfake & Traditional Image Forgery with Deep Learning</p>
+      </header>
 
-      <main className="dashboard" id="dashboard">
-        <section className="hero">
-          <div className="badge">AI-POWERED IMAGE ANALYSIS</div>
-          <h1>Detect Image Forgery <span>with AI</span></h1>
-          <p>Analyze images for deepfakes, copy-move forgery, splicing, and digital alterations.</p>
-        </section>
-
-        <section className="upload-section">
-          {!preview ? (
-            <div className="upload-box">
-              <div className="upload-icon">↑</div>
-              <h2>Upload an Image</h2>
-              <p>Drag & drop your image here or browse from your computer</p>
-              
-              <button 
-                type="button" 
-                className="browse-button" 
-                onClick={() => fileInputRef.current.click()}
-              >
-                Browse Image
-              </button>
-
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                accept="image/png,image/jpeg,image/webp" 
-                onChange={handleImageUpload} 
-                style={{ display: "none" }} 
+      <main className="main-content">
+        <section className="workstation-card">
+          <h2>Forensic Inspection Workstation</h2>
+          
+          {/* Dynamic Image Display Area */}
+          <div className="image-preview-box">
+            {preview ? (
+              <img
+                src={showHeatmap && result?.heatmap ? result.heatmap : preview}
+                alt="Forensic View"
+                className="preview-image"
               />
-            </div>
-          ) : (
-            <div className="preview-box">
-              <h2>Forensic Inspection Workstation</h2>
-              
-              <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', margin: '20px 0', flexWrap: 'wrap' }}>
-                <div>
-                  <p className="image-label">Original Image</p>
-                  <img src={preview} alt="Uploaded image" className="preview-image" style={{ maxHeight: '250px', borderRadius: '8px' }} />
-                </div>
-                {result && showHeatmap && result.heatmap && (
-                  <div>
-                    <p className="image-label">Suspicious Region Heatmap (ELA)</p>
-                    <img src={result.heatmap} alt="Forensic Heatmap" className="preview-image" style={{ maxHeight: '250px', borderRadius: '8px', border: '2px solid #00f2fe' }} />
-                  </div>
-                )}
+            ) : (
+              <div className="upload-placeholder" onClick={() => fileInputRef.current.click()}>
+                <p>Drag & Drop or Click to Upload Image</p>
               </div>
+            )}
+          </div>
 
-              <p className="file-name">{image.name}</p>
+          <p className="file-info-text">{image ? image.name : "No file chosen"}</p>
 
-              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
-                <button className="analyze-button" onClick={analyzeImage} disabled={loading}>
-                  {loading ? "Analyzing..." : "Analyze Image"}
-                </button>
-                
-                <button 
-                  type="button" 
-                  className="change-button" 
-                  onClick={() => changeInputRef.current.click()}
-                >
-                  Choose Another Image
-                </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            style={{ display: "none" }}
+            accept="image/*"
+          />
 
-                <input 
-                  type="file" 
-                  ref={changeInputRef} 
-                  accept="image/png,image/jpeg,image/webp" 
-                  onChange={handleImageUpload} 
-                  style={{ display: "none" }} 
-                />
-              </div>
-
-              {error && <div className="error-message">{error}</div>}
-
-              {result && (
-                <div className="result-card">
-                  <div className="result-header">
-                    <h3>Analysis Results</h3>
-                    <span className={result.is_forged ? "badge-forged" : "badge-authentic"}>
-                      {result.prediction}
-                    </span>
-                  </div>
-
-                  <div className="result-grid">
-                    <p><strong>Detected Type:</strong> {result.forgery_type}</p>
-                    <p><strong>Confidence Score:</strong> {result.confidence}%</p>
-                    <p><strong>Risk Level:</strong> <span className={`risk-${result.risk_level?.toLowerCase()}`}>{result.risk_level}</span></p>
-                    <p><strong>Resolution:</strong> {result.width} × {result.height} px</p>
-                  </div>
-
-                  {result.heatmap && (
-                    <button className="heatmap-button" onClick={() => setShowHeatmap(!showHeatmap)}>
-                      {showHeatmap ? "Hide Heatmap Evidence" : "🔍 View Forensic Heatmap"}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="action-buttons">
+            <button className="btn btn-primary" onClick={analyzeImage} disabled={loading}>
+              {loading ? "Analyzing Matrix..." : "Analyze Image"}
+            </button>
+            <button className="btn btn-secondary" onClick={() => fileInputRef.current.click()}>
+              Choose Another Image
+            </button>
+          </div>
         </section>
+
+        {error && <div className="error-message-box">{error}</div>}
+
+        {/* Forensic Metrics Results Panel */}
+        {result && (
+          <section className="results-card">
+            <div className="results-header">
+              <h3>Analysis Results</h3>
+              <span className={`status-badge ${result.prediction.toLowerCase()}`}>
+                {result.prediction}
+              </span>
+            </div>
+
+            <div className="metrics-grid">
+              <div className="metric-item">
+                <span className="label">Detected Type:</span>
+                <span className="value">{result.forgery_type}</span>
+              </div>
+              <div className="metric-item">
+                <span className="label">Confidence Score:</span>
+                <span className="value">{result.confidence}%</span>
+              </div>
+              <div className="metric-item">
+                <span className="label">Risk Level:</span>
+                <span className={`value risk-${result.risk_level.toLowerCase()}`}>
+                  {result.risk_level}
+                </span>
+              </div>
+              <div className="metric-item">
+                <span className="label">Resolution:</span>
+                <span className="value">{result.width} × {result.height} px</span>
+              </div>
+            </div>
+
+            {result.heatmap && (
+              <div className="heatmap-toggle-container">
+                <button
+                  className={`btn ${showHeatmap ? "btn-active" : "btn-heatmap"}`}
+                  onClick={() => setShowHeatmap(!showHeatmap)}
+                >
+                  {showHeatmap ? "← View Original Image" : "🔍 View Forensic Heatmap"}
+                </button>
+              </div>
+            )}
+          </section>
+        )}
       </main>
     </div>
   );
