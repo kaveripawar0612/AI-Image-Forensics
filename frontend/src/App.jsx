@@ -24,7 +24,7 @@ function App() {
   const analyzeImage = async () => {
     if (!image) {
       setError("Please select an image first.");
-      return;
+     
     }
 
     setLoading(true);
