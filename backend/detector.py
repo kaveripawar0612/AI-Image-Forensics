@@ -47,7 +47,7 @@ async def analyze_image(file: UploadFile = File(...)):
         gray_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
 
         # =========================================================================
-        # STREAM 1: SPATIAL DEEP LEARNING ANALYSIS (For Organic Boundary Distortions)
+        # STREAM 1: SPATIAL DEEP LEARNING ANALYSIS
         # =========================================================================
         input_tensor = transform(image).unsqueeze(0)
         with torch.no_grad():
@@ -56,30 +56,28 @@ async def analyze_image(file: UploadFile = File(...)):
             spatial_variance = float(torch.var(probabilities).item()) * 1e5
 
         # =========================================================================
-        # STREAM 2: CHROMINANCE COMPRESSION RESIDUALS (For Splicing & Copy-Move)
+        # STREAM 2: CHROMINANCE COMPRESSION RESIDUALS
         # =========================================================================
         ycbcr_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2YCrCb)
         y, cb, cr = cv2.split(ycbcr_img)
         
-        # Isolate high-frequency edge discontinuities across the Cr (chroma) channel
         laplacian_cr = cv2.Laplacian(cr, cv2.CV_64F)
         laplacian_cr_abs = np.uint8(np.absolute(laplacian_cr))
         chroma_variance = float(np.var(laplacian_cr_abs))
 
         # =========================================================================
-        # STREAM 3: MICRO-TEXTURE BOUNDARY PATTERNS (For Deepfake Face-Swaps)
+        # STREAM 3: MICRO-TEXTURE BOUNDARY PATTERNS
         # =========================================================================
         lbp_matrix = local_binary_pattern(gray_img, LBP_POINTS, LBP_RADIUS, 'uniform')
         texture_variance = float(np.var(lbp_matrix))
 
         # =========================================================================
-        # STREAM 4: FREQUENCY SPECTRUM ANALYSIS (For GAN / Diffusion Grid Artifacts)
+        # STREAM 4: FREQUENCY SPECTRUM ANALYSIS
         # =========================================================================
         f_transform = np.fft.fft2(gray_img)
         f_shift = np.fft.fftshift(f_transform)
         magnitude_spectrum = np.log(np.abs(f_shift) + 1)
         frequency_variance = float(np.var(magnitude_spectrum))
-
 
         # =========================================================================
         # HYBRID INTELLIGENCE DECISION GATES (Classification Engine)
@@ -88,7 +86,7 @@ async def analyze_image(file: UploadFile = File(...)):
         forgery_type = "Authentic (No Manipulation Detected)"
         risk_level = "LOW"
         confidence = min(max((frequency_variance * 1.6), 11.40), 24.50)
-        heatmap_mode = "ocean" # Default cool blue map for verified clean files
+        heatmap_mode = "ocean"
 
         # Check Gate 1: GAN / Diffusion AI Generation Signature
         if frequency_variance > 14.8:
@@ -118,7 +116,6 @@ async def analyze_image(file: UploadFile = File(...)):
                 forgery_type = "Copy-Move Forgery (Cloned Texture Regions)"
                 confidence = min(max((spatial_variance * 2.2), 72.40), 88.90)
 
-
         # =========================================================================
         # THE HYBRID HEATMAP BLENDING MATRIX GENERATOR
         # =========================================================================
@@ -126,24 +123,20 @@ async def analyze_image(file: UploadFile = File(...)):
         spatial_abs = np.uint8(np.absolute(laplacian_spatial))
 
         if heatmap_mode == "diffusion_ai":
-            # Blends frequency spikes with spatial markers into intense neon Jet contrast mapping
             heatmap_raw = cv2.applyColorMap(spatial_abs * 9, cv2.COLORMAP_JET)
-            # Inject deep red matrix anchors onto pixel segments indicating upsampling boundaries
-            heatmap_raw[spatial_abs > 30] = [0, 0, 255] 
+            # Corrected: Color high-frequency edges in bright red pixels [B, G, R]
+            heatmap_raw[spatial_abs > 30] = [0, 0, 255]
             
         elif heatmap_mode == "deepfake":
-            # Deepfakes show local smoothing boundaries. We use structural edge enhancement markers.
             heatmap_raw = cv2.applyColorMap(spatial_abs * 6, cv2.COLORMAP_HOT)
-            # Highlight organic face boundary blending discrepancies in stark yellow tracking matrices
+            # Corrected: Color smoothing anomalies in bright yellow pixels [B, G, R]
             heatmap_raw[spatial_abs > 40] = [0, 255, 255]
             
         elif heatmap_mode == "splicing_copymove":
-            # Leverages Chroma layer matrices overlaid directly on spatial structural maps
             blended_matrix = cv2.addWeighted(spatial_abs, 0.5, laplacian_cr_abs, 0.5, 0)
             heatmap_raw = cv2.applyColorMap(blended_matrix * 7, cv2.COLORMAP_RAINBOW)
             
         else:
-            # Clean, uniform low-variance distribution map for pristine files
             heatmap_raw = cv2.applyColorMap(spatial_abs * 2, cv2.COLORMAP_OCEAN)
 
         heatmap_img = cv2.resize(heatmap_raw, (width, height))
@@ -153,10 +146,10 @@ async def analyze_image(file: UploadFile = File(...)):
         return {
             "prediction": prediction,
             "forgery_type": forgery_type,
-            "confidence": round(confidence, 2),
+            "confidence": float(round(confidence, 2)),
             "risk_level": risk_level,
-            "width": width,
-            "height": height,
+            "width": int(width),
+            "height": int(height),
             "heatmap": f"data:image/jpeg;base64,{heatmap_base64}"
         }
 
