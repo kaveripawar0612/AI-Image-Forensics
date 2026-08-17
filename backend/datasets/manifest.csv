@@ -1,0 +1,9 @@
+filepath,label,attack_type,source_dataset,split
+/Users/kirteshchavhan/AI-Image-Forensics/backend/datasets/Au_1.jpg,authentic,none,CASIA2,train
+/Users/kirteshchavhan/AI-Image-Forensics/backend/datasets/Au_2.jpg,authentic,none,CASIA2,test
+/Users/kirteshchavhan/AI-Image-Forensics/backend/datasets/Tp_1.jpg,forged,copy-move,CASIA2,train
+/Users/kirteshchavhan/AI-Image-Forensics/backend/datasets/Tp_2.jpg,forged,splicing,CASIA2,test
+/Users/kirteshchavhan/AI-Image-Forensics/backend/datasets/Df_1.jpg,forged,deepfake,FaceForensics++,train
+/Users/kirteshchavhan/AI-Image-Forensics/backend/datasets/Df_2.jpg,forged,deepfake,FaceForensics++,test
+/Users/kirteshchavhan/AI-Image-Forensics/backend/datasets/Gan_1.jpg,forged,generative-ai,Synthetic,train
+/Users/kirteshchavhan/AI-Image-Forensics/backend/datasets/Gan_2.jpg,forged,generative-ai,Synthetic,test
