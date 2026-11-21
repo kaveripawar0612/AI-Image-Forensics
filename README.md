@@ -71,17 +71,11 @@ Start the React development server:
 ```bash
 npm run dev
 ```
-*Your frontend is now live at `http://localhost:5173`*
+
 
 ---
 
-## 🌐 Connecting to the Internet (Optional)
-If you want to host the frontend on a service like Vercel but keep the heavy AI models running locally on your laptop, you can securely tunnel your backend using Pinggy:
-```bash
-ssh -p 443 -R0:localhost:8000 a.pinggy.io
-```
-Copy the secure URL Pinggy gives you, place it in your `frontend/.env` file as `VITE_API_URL`, and deploy your frontend!
+*Your frontend is now live on render*
 
----
+___ 
 
-*Built with ❤️ for advanced computer vision research.*
